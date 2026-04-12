@@ -1,0 +1,51 @@
+<script>
+document.querySelectorAll('.copy-btn , .copy-btn-copy').forEach(button => {
+            button.addEventListener('click', async function() {
+                const urlToCopy = this.getAttribute('data-url');
+                
+                try {
+                    await navigator.clipboard.writeText(urlToCopy);
+                    
+                    const originalText = this.textContent;
+                    this.textContent = 'Copied!';
+                    
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                    this.textContent = 'Failed!';
+                    setTimeout(() => {
+                        this.textContent = 'Copy';
+                    }, 2000);
+                }
+            });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', async function() {
+                const urlId = this.getAttribute('data-id');
+                
+                if (!confirm('Are you sure you want to delete this URL?')) {
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/url/delete/${urlId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        const row = this.closest('tr');
+                        row.remove();
+                    } else {
+                        alert('Failed to delete URL');
+                    }
+                } catch (err) {
+                    console.error('Delete error:', err);
+                    alert('Error deleting URL');
+                }
+            });
+        });
+
+        </script>

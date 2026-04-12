@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('./partials/head')%>
+
+    <title>Signup</title>
+  </head>
+  <body>
+    <div class="auth-page">
+      <div class="auth-card">
+        <section class="auth-info-panel">
+          <div class="auth-icon">🔗</div>
+          <h2>Start shortening in seconds.</h2>
+          <p>
+            Create smart, shareable short URLs that help you track and grow
+            every click.
+          </p>
+          <ul class="auth-feature-list">
+            <li>✦ Instant short links</li>
+            <li>✦ Real-time click tracking</li>
+            <li>✦ Link history dashboard</li>
+            <li>✦ Secure account access</li>
+          </ul>
+        </section>
+
+        <section class="signup-form-section auth-form-panel">
+          <div class="auth-brand">URLShort</div>
+          <h1>Create account</h1>
+          <p class="auth-subtitle">Get started — it's completely free</p>
+
+          <form action="/user" method="post" class="js-auth-form" novalidate>
+            <div class="signup-form-group">
+              <label for="name">Full Name</label>
+              <input id="name" type="text" required name="name" />
+              <small class="field-error" data-error-for="name"></small>
+
+              <label for="email">Email</label>
+              <input id="email" type="email" required name="email" />
+              <small class="field-error" data-error-for="email"></small>
+
+              <label for="password">Password</label>
+              <input id="password" type="password" required name="password" />
+              <small class="field-error" data-error-for="password"></small>
+
+              <p class="form-status js-form-status" aria-live="polite"></p>
+
+              <button type="submit" class="signup-btn">Create Account</button>
+            </div>
+          </form>
+
+          <p class="auth-link">
+            Already have an account? <a href="/login">Sign in</a>
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const form = document.querySelector(".js-auth-form");
+        if (!form) return;
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const submitBtn = form.querySelector(".signup-btn");
+        const statusEl = form.querySelector(".js-form-status");
+        const fields = {
+          name: form.querySelector("#name"),
+          email: form.querySelector("#email"),
+          password: form.querySelector("#password"),
+        };
+
+        const defaultBtnText = submitBtn.textContent;
+
+        function setStatus(message, type) {
+          if (!statusEl) return;
+          statusEl.textContent = message || "";
+          statusEl.classList.remove(
+            "form-status--error",
+            "form-status--success",
+          );
+          if (type === "error") statusEl.classList.add("form-status--error");
+          if (type === "success")
+            statusEl.classList.add("form-status--success");
+        }
+
+        function setError(field, message) {
+          const errorEl = form.querySelector(
+            `[data-error-for="${field.name}"]`,
+          );
+          if (errorEl) errorEl.textContent = message;
+          field.classList.add("input-invalid");
+          field.classList.remove("input-valid");
+        }
+
+        function setValid(field) {
+          const errorEl = form.querySelector(
+            `[data-error-for="${field.name}"]`,
+          );
+          if (errorEl) errorEl.textContent = "";
+          field.classList.remove("input-invalid");
+          field.classList.add("input-valid");
+        }
+
+        function validateField(field) {
+          const value = field.value.trim();
+
+          if (!value) {
+            setError(field, "This field is required.");
+            return false;
+          }
+
+          if (field.name === "email" && !emailRegex.test(value)) {
+            setError(field, "Please enter a valid email address.");
+            return false;
+          }
+
+          if (field.name === "password" && value.length < 6) {
+            setError(field, "Password must be at least 6 characters.");
+            return false;
+          }
+
+          setValid(field);
+          setStatus("");
+          return true;
+        }
+
+        Object.values(fields).forEach((field) => {
+          field.addEventListener("input", function () {
+            validateField(field);
+          });
+          field.addEventListener("blur", function () {
+            validateField(field);
+          });
+        });
+
+        form.addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const isFormValid = Object.values(fields).every((field) =>
+            validateField(field),
+          );
+
+          if (!isFormValid) {
+            setStatus("Please fix the highlighted fields.", "error");
+            return;
+          }
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Processing...";
+          setStatus("");
+
+          try {
+            const response = await fetch(form.action, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+              },
+              body: JSON.stringify({
+                name: fields.name.value.trim(),
+                email: fields.email.value.trim(),
+                password: fields.password.value,
+              }),
+            });
+
+            let result = {};
+            try {
+              result = await response.json();
+            } catch (jsonError) {
+              result = {};
+            }
+
+            if (!response.ok) {
+              setStatus(
+                result.error || "Signup failed. Please try again.",
+                "error",
+              );
+              return;
+            }
+
+            setStatus(
+              result.message || "Account created successfully.",
+              "success",
+            );
+            const redirectTo = result.redirect || "/";
+            setTimeout(function () {
+              window.location.href = redirectTo;
+            }, 700);
+          } catch (error) {
+            setStatus("Network error. Please try again.", "error");
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = defaultBtnText;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

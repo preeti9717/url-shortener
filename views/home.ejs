@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <%- include('./partials/head')%>
+ 
+    <title>URL Shortener</title>
+   
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>URL Shortener</h1>
+            <p class="subtitle">Create and manage your shortened URLs</p>
+        </header>
+
+        <div class="form-section">
+            <% if (locals.id) { %>
+                <div class="success-message">
+                    ✓ URL Generated: <strong>http://localhost:8001/url/<%= id %></strong>
+                   <button class="copy-btn-copy" data-url="http://localhost:8001/url/<%= id %>">Copy</button> 
+                </div>
+            <% } %>
+
+            <form method="POST" action="/url">
+                <div class="form-group">
+                    <label for="url">Enter your Original URL:</label>
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="url"
+                            name="url" 
+                            placeholder="https://example.com/very/long/url" 
+                            required
+                        />
+                        <button type="submit" class="btn-generate">Generate</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <% if (locals.urls && urls.length > 0) { %>
+            <div class="urls-section">
+                <h2>Your Shortened URLs</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Short ID</th>
+                                <th>Original URL</th>
+                                <th>Clicks</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% urls.forEach((url, index) => { %>
+                                <tr>
+                                    <td><strong><%= index + 1 %></strong></td>
+                                    <td><span class="short-id"><%= url.shortId %></span></td>
+                                    <td><%= url.redirectURL %></td>
+                                    <td><span class="clicks-badge"><%= url.visitHistory.length %></span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="copy-btn" data-url="http://localhost:8001/url/<%= url.shortId %>">Copy</button>
+                                            <button class="delete-btn" data-id="<%= url._id %>">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <% } %>
+
+    <%- include('./partials/script')%>
+    
+</body>
+</html>
