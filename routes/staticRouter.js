@@ -23,11 +23,11 @@ router.get( "/", restrictTo(["NORMAL","ADMIN"]), async (req, res) => {
 );
 
 router.get("/signup", (req, res) => {
-  return res.render("Signup");
+  return res.render("signup");
 });
 
 router.get("/login", (req, res) => {
-  return res.render("Login");
+  return res.render("login");
 });
 
 module.exports = router;
